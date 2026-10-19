@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "additionalDirectories": [
+      "../qgames-backend-monorepo",
+      "../qgames-frontend-monorepo"
+    ],
+    "allow": [
+      "Bash(./gradlew *)",
+      "Bash(pnpm *)",
+      "Bash(docker compose *)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git -C * status *)",
+      "Bash(git -C * diff *)",
+      "PowerShell(./gradlew *)",
+      "PowerShell(.\\gradlew *)",
+      "PowerShell(pnpm *)",
+      "PowerShell(docker compose *)",
+      "PowerShell(git status *)",
+      "PowerShell(git diff *)",
+      "PowerShell(git -C * status *)",
+      "PowerShell(git -C * diff *)"
+    ],
+    "deny": [
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(git -C * commit *)",
+      "Bash(git -C * push *)",
+      "PowerShell(git commit *)",
+      "PowerShell(git push *)",
+      "PowerShell(git -C * commit *)",
+      "PowerShell(git -C * push *)"
+    ]
+  }
+}
