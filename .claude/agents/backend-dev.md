@@ -31,7 +31,7 @@ tools: Read, Edit, Write, Glob, Grep, Bash, PowerShell
 ## Готовность
 
 - `./gradlew build` проходит (нужен Docker).
-- Если менялся контракт user-gateway — подними стенд `docker compose up --build -d --wait`, чтобы фронтенд снял `/v3/api-docs`.
+- Если менялся контракт API — подними стенд `docker compose up --build -d --wait`, чтобы фронтенд снял `/v3/api-docs/portal` и `/v3/api-docs/admin`.
 - Не коммить и не пушь.
 
 ## Ответ оркестратору
