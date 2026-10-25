@@ -65,17 +65,38 @@
 - **Чем грозит.** Если порядок тегов «поплывёт», сгенерированный клиент фронта (`tags-split`) может меняться без изменения контракта — лишние диффы и конфликты.
 - **Как поправить.** Сортировать `tags` по имени в OpenAPI-кастомизаторе `libs/common-web` и проверить в `PortalOpenApiContractScenariosTest` и `AdminOpenApiContractScenariosTest` (app).
 
+## Деплой на VPS 1 ГБ (отложен пользователем)
+
+### Прод-деплой
+- **Что не так.** Стенд прод-подобный (nginx + app + Postgres, same-origin, лимиты памяти), но на VPS ничего не развёрнуто.
+- **Как поправить.** Решить и сделать отдельной фичей:
+  - сборка образов и доставка (GitHub Actions → GHCR, `docker compose pull` на VPS или автодеплой по SSH);
+  - где лежит прод-compose и конфиг nginx с хостами (`<имя>.duckdns.org`, `admin.<имя>.duckdns.org`), секреты (`.env` на VPS: JWT-ключи, `GOOGLE_CLIENT_IDS`, пароль первого админа);
+  - TLS в проде: nginx не выпускает сертификаты сам — certbot (или acme.sh с DNS-01 DuckDNS) с томом для сертификатов и продлением; порты 80/443; DuckDNS — cron обновления IP;
+  - `restart: unless-stopped` у сервисов (app с `-XX:+ExitOnOutOfMemoryError` иначе не поднимется сам);
+  - `API_DOCS_ENABLED=false` в проде;
+  - бэкапы `pg_dump` по расписанию с копией вне VPS;
+  - Google OAuth: Authorized JS origins на домене DuckDNS, проверить, нужна ли верификация домена (TXT-запись DuckDNS поддерживает);
+  - swap на VPS.
+  - **IP upstream nginx фиксируется при старте web.** `18-api-upstream-ipv4.envsh` резолвит `API_UPSTREAM` один раз, nginx со статическим `server` — тоже. В прод-compose (`app:8080` в общей сети) пересоздание app меняет IP, и web ходит на старый (502), пока его не перезапустят; если app нет в момент старта web — `getent` пуст, контейнер падает. Поправить: в проде `resolver 127.0.0.11 valid=10s` + `proxy_pass` через переменную (или перезапуск web вместе с app); IPv4-обход оставить только для `host.docker.internal`. Где: `docker/nginx/` фронта;
+  - **`worker_connections 1024`** из `nginx.conf` образа: на VPS с 1 vCPU — один воркер, каждый SSE-поток занимает два соединения (клиент и upstream) → потолок ~500 одновременных потоков, дальше `worker_connections are not enough`. Поднять (свой `nginx.conf`) и перемерить память web при одном воркере.
+
+### Защита от запросов с соседнего поддомена и чужих сайтов
+- **Что не так.** CORS удалён, `Origin` не проверяется. (1) Портал и `admin.<домен>` — один сайт (DuckDNS — публичный суффикс), поэтому со страницы админки можно отправить на портал POST без тела (старт/пауза/отмена партии, logout) с куками игрока. (2) Подписка на поток комнаты `GET /api/rooms/{id}/events` — это вход в комнату, а Lax-куки уходят при переходе верхнего уровня с **любого** сайта (ссылка, `window.open`), с хоста админки — и с `EventSource(withCredentials)`. Так было и до перехода на same-origin.
+- **Чем грозит.** (1) Действия от имени игрока — при XSS в админке. (2) Чужая страница может «завести» игрока в комнату атакующего (при свободном месте — игроком), пока вкладка открыта.
+- **Как поправить.** Фильтр в app: на POST/PUT/PATCH/DELETE — 403, если `Sec-Fetch-Site` равен `cross-site` или `same-site`; на SSE-ручках (`…/events`) — 403 также при `Sec-Fetch-Mode: navigate`. Без заголовков (curl, старые браузеры) — пропускать. С тестами. Сделать при деплое. Где: `app/.../config/SecurityConfig.kt`, CLAUDE.md бэкенда §5 «Принятый риск».
+
+### Редкие 504 от nginx под высокой нагрузкой
+- **Что не так.** На нагрузочном замере через nginx фронта (360 SSE, ~180 запросов/с, 5 мин) — 2 ответа 504 на 52 661 ход: `upstream timed out (110) while connecting to upstream`. Вероятная причина — проброс `host.docker.internal` в Docker Desktop; не проверено.
+- **Чем грозит.** Редкие отказы хода под нагрузкой, ожидание до 60 с (`proxy_connect_timeout` по умолчанию).
+- **Как поправить.** При деплое проверить на VPS (web и app в одной docker-сети). Если повторится — `keepalive 64` у upstream и `proxy_connect_timeout 5s`. Где: `docker/nginx/web.conf.template`, `docker/nginx/api-proxy.conf` фронта.
+
+### CPU только с C1
+- **Что не так.** Чтобы app уложился в 512 МБ, JIT ограничен C1 (`-XX:TieredStopAtLevel=1`): на нагрузочном замере это ~45% CPU больше, чем с C2.
+- **Чем грозит.** На VPS с 1 vCPU при высокой нагрузке может не хватить процессора.
+- **Как поправить.** Пересмотреть флаги JVM при выборе VPS и реальной нагрузке. Где: `docker/app.Dockerfile` бэкенда, CLAUDE.md §10.
+
 ## Docker-сборка фронта
-
-### Нет CSP у фронта
-- **Что не так.** nginx фронта отдаёт `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`, но не Content-Security-Policy. Отложено пользователем.
-- **Чем грозит.** Нет второго рубежа защиты от XSS и утечки данных на чужие домены.
-- **Как поправить.** portal/admin: `connect-src` должен содержать `PUBLIC_API_URL` (вшивается при сборке, свой у каждого окружения) и Google GIS (`script-src https://accounts.google.com/gsi/client`, `frame-src`/`style-src`/`connect-src https://accounts.google.com/gsi/`). Варианты: мета-тег из `rsbuild.config.ts` в прод-сборке по тому же `PUBLIC_API_URL` (рекомендация: один источник адреса; `frame-ancestors` закрыт `X-Frame-Options`), шаблон nginx + envsubst при запуске (адрес дублируется в compose), подстановка из `.env` при сборке образа (хрупко). Решить вместе с прод-деплоем фронта.
-
-### Образ сборки фронта без точной версии Node
-- **Что не так.** `docker/app.Dockerfile` берёт `node:24-alpine` без минорной версии (nginx закреплён на `nginx-unprivileged:1.30.6-alpine`).
-- **Чем грозит.** Сборки в разное время идут на разных патчах Node — невоспроизводимо.
-- **Как поправить.** Закрепить точную версию (например, `node:24.x.y-alpine`) и обновлять вместе с `.nvmrc`.
 
 ### pnpm 12 ждёт одобрения agent skills
 - **Что не так.** При `pnpm install` в образе: «Agent skills awaiting approval: @tanstack/router-plugin. Run "pnpm approve"». Ничего не одобрялось.
