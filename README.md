@@ -1,6 +1,6 @@
 # qgames-workspace
 
-Рабочее место оркестратора Claude Code: одна фича делается сразу в бэкенде и фронтенде qgames. Оркестратор (основная сессия) пишет спецификацию и задаёт вопросы пользователю, агенты `backend-dev` и `frontend-dev` реализуют, `reviewer` проверяет. Подробности — в [CLAUDE.md](CLAUDE.md).
+Рабочее место Claude Code для фич qgames, которые затрагивают бэкенд и фронтенд. Основная сессия (фулстек) задаёт вопросы пользователю и реализует обе стороны, агент `reviewer` проверяет. Подробности — в [CLAUDE.md](CLAUDE.md).
 
 ## Раскладка
 
@@ -24,8 +24,7 @@ git clone https://github.com/qwe3qwe3lott/qgames-frontend-monorepo.git
 ```bash
 cd qgames-workspace
 claude
-> /agents                       # backend-dev, frontend-dev, reviewer
-> /feature <описание фичи>
+> <описание задачи>
 ```
 
-Коммиты в репозиториях агенты не делают — коммитит разработчик.
+Коммиты в репозиториях Claude не делает — коммитит разработчик.
