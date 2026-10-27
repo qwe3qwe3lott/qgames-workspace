@@ -1,6 +1,6 @@
 # C4 · Уровень 3 — модель игры (`games/*` и общий применитель патчей)
 
-Одна модель на бэкенде и фронте: сервер порождает события-патчи, обе стороны применяют их одним общим применителем. Решения: [session-state](../game/session-state.md), [game-rules-modules](../backend/game-rules-modules.md), [frontend-game-logic](../frontend/frontend-game-logic.md). Чек-лист новой игры — `backend/docs/games.md`.
+Одна модель на бэкенде и фронте: сервер порождает события-патчи, обе стороны применяют их одним общим применителем. Решения: [session-state](../game/session-state.md), [game-rules-modules](../backend/game-rules-modules.md), [frontend-game-logic](../frontend/frontend-game-logic.md). Чек-лист новой игры — `backend/games/CLAUDE.md`.
 
 ```mermaid
 C4Component

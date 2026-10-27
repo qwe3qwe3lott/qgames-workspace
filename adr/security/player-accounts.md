@@ -34,4 +34,4 @@
 ## Последствия
 
 - Один человек может завести несколько аккаунтов через разных провайдеров — принятый риск.
-- Без `GOOGLE_CLIENT_IDS` и `PUBLIC_GOOGLE_CLIENT_ID` регистрация недоступна (локальная настройка — `frontend/docs/docker.md`).
+- Без `GOOGLE_CLIENT_IDS` и `PUBLIC_GOOGLE_CLIENT_ID` регистрация недоступна (локальная настройка — `frontend/README.md`).

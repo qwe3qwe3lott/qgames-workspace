@@ -1,6 +1,6 @@
 # Где живут правила игр
 
-Область: backend · Диаграммы: [c4/3-backend-games](../c4/3-backend-games.md) · Код: `backend/games/*`, чек-лист — `backend/docs/games.md`
+Область: backend · Диаграммы: [c4/3-backend-games](../c4/3-backend-games.md) · Код: `backend/games/*`, чек-лист — `backend/games/CLAUDE.md`
 
 ## Контекст
 
