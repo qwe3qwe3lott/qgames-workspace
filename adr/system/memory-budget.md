@@ -16,6 +16,8 @@
 - `-XX:TrimNativeHeapInterval=5000` и `MALLOC_ARENA_MAX=2`: glibc сам не отдаёт malloc-память и плодит арены;
 - `-XX:+ExitOnOutOfMemoryError`; `-Xss` не задан; AOT-кеш не используется (обучающему запуску нужна БД).
 
+**Образ app:** runtime — `eclipse-temurin:25-jre` (Ubuntu, glibc), сборка — `25-jdk`. На замере (45 комнат, 360 SSE, 190 ходов/с, 5 мин) у облегчённых образов плато RSS то же (429–435 МБ против 431), CPU и время старта тоже; выигрыш только в размере (gzip 167 → 105–133 МБ) и ~40 МБ в простое.
+
 **Кеш состояний партий:** 2000 записей и `expire-after-access` 5m (~60 МБ, ~500 партий на двоих).
 
 **PostgreSQL** (`mem_limit 128m`): `max_connections=20`, `shared_buffers=16MB`, `effective_cache_size=64MB`, `work_mem=2MB`, `maintenance_work_mem=16MB`, `wal_buffers=1MB`, `max_wal_size=64MB`, `jit=off`, `huge_pages=off`, без параллельных воркеров, `autovacuum_max_workers=1`.
@@ -25,6 +27,9 @@
 | Вариант | Почему нет |
 |---|---|
 | JVM с флагами по умолчанию (C2, heap 75%) при `mem_limit 512m` | Под нагрузкой OOM-kill: heap 384 МБ + ~180 МБ вне heap, C2 берёт до 160 МБ арен |
+| Свой JRE через `jlink` на `debian:13-slim` (gzip 133 МБ) | Память под нагрузкой та же; список модулей надо поддерживать, пропущенный модуль падает только в рантайме на редком пути |
+| `eclipse-temurin:25-jre-alpine`, jlink на alpine (gzip 125 / 105 МБ) | Память та же; musl: `MALLOC_ARENA_MAX` и `TrimNativeHeapInterval` не действуют, долгий профиль памяти не проверен |
+| distroless java25 (gzip 121 МБ) | Память та же; нет shell и curl для healthcheck |
 | Кеш состояний на 10000 записей и 30m | Живой heap рос до ~185 МБ из 247, шли подряд полные сборки — дальше был бы OOM |
 
 ## Последствия

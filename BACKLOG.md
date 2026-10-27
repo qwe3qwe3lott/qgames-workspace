@@ -106,11 +106,6 @@
 - **Чем грозит.** На VPS с 1 vCPU при высокой нагрузке может не хватить процессора.
 - **Как поправить.** Пересмотреть флаги JVM при выборе VPS и реальной нагрузке. Где: `docker/app.Dockerfile` бэкенда, `adr/system/memory-budget.md`.
 
-### Облегчённые Docker-образы
-- **Что не так.** Бэкенд запускается на `eclipse-temurin:25-jre` (Ubuntu), собирается на `25-jdk`. Фронт уже на `nginxinc/nginx-unprivileged:*-alpine`, БД — `postgres:18-alpine`.
-- **Чем грозит.** Лишний размер образа и, возможно, память на VPS 1 ГБ.
-- **Как поправить.** Исследовать и замерить: `eclipse-temurin:25-jre-alpine`, distroless Java, свой JRE через `jlink` (только нужные модули). Сравнить размер образа и RSS контейнера под нагрузкой; учесть musl в alpine. Где: `docker/app.Dockerfile` бэкенда, `docker-compose.yml`, `adr/system/memory-budget.md`.
-
 ## Docker-сборка фронта
 
 ### pnpm 12 ждёт одобрения agent skills
