@@ -1,6 +1,6 @@
 # ERD · game
 
-Источник правды — `backend/game/game/src/main/resources/db/changelog/game/DDL/`. Решения: [game-catalog](../game/game-catalog.md), [room-lifecycle](../game/room-lifecycle.md), [room-presence](../game/room-presence.md), [session-state](../game/session-state.md).
+Источник правды — `backend/game/game/src/main/resources/db/changelog/game/DDL/`. Решения: [game-catalog](../game/game-catalog.md), [room-lifecycle](../game/room-lifecycle.md), [room-settings](../game/room-settings.md), [room-presence](../game/room-presence.md), [session-state](../game/session-state.md).
 
 ```mermaid
 erDiagram
@@ -19,7 +19,7 @@ erDiagram
     varchar status "16, WAITING, IN_GAME"
     uuid current_session_id "nullable, без FK"
     timestamptz empty_since "nullable, room_empty_since_idx"
-    json game_settings "часы и настройки игры"
+    json settings "room, simple или null, advanced"
     timestamptz created_at
   }
   room_member {
@@ -42,7 +42,7 @@ erDiagram
     varchar status "16, IN_PROGRESS, FINISHED, CANCELLED"
     bigint seed
     bigint last_seq "default 0"
-    json game_settings "снапшот настроек"
+    json settings "снапшот advanced"
     timestamptz move_deadline "nullable, проекция для MoveTimeoutJob"
     timestamptz created_at
     timestamptz finished_at "nullable"

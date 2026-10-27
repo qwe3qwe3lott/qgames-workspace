@@ -40,12 +40,13 @@ C4Component
 
 ## `GameRules` — что задаёт игра
 
-- `start` — начальное состояние. `SessionEngine` превращает его в первое событие `session-started` = `PUT [] {status, meta: {game: {code, rules}, moveRules}, state}`;
+- `start` — начальное состояние. `SessionEngine` превращает его в первое событие `session-started` = `PUT [] {status, meta: {game: {code, settings}, advancedRules}, state}`, где `settings` — advanced-настройки партии;
 - `decide(state, settings, playerId, move)` → `Rejected(code)` или `Accepted(events)`;
 - `moveOptions(state, playerId)` — допустимые действия. Фронт правил не знает и рисует только их;
 - `mask(event, viewerKey)` — маскирует `value` для проекций `Full`/`Public`/`Player(id)`. Замаскированное событие доставляется со своим seq. Инвариант «свёртка маскированных = маска полной свёртки» обязателен к тесту;
-- `moveRules(settings)` — флаги для подсказок ввода на клиенте (`meta.moveRules`), `onTimeout(state)`;
-- настройки игры с границами (`GET /api/games/{gameCode}`), поля игры у игрока (`playerClass`), правила часов (`TimeControlRules`).
+- настройки двух уровней ([room-settings](../game/room-settings.md)): `simpleClass`, `advancedClass`, `defaultSimple`, `validateSimple`/`validateAdvanced`, `toAdvanced(simple)`, `clock(advanced)` — часы; `start` и `decide` получают только advanced;
+- `advancedRules(advanced)` — итоговые правила для подсказок ввода на клиенте (`meta.advancedRules`), `onTimeout(state)`;
+- границы настроек и пресеты (`settingsLimits`, `GET /api/games/{gameCode}`), поля игры у игрока (`playerClass`), границы часов (`TimeControlRules`).
 
 Случайность берётся только из seed партии: журнал воспроизводим при переигрывании.
 
@@ -62,7 +63,7 @@ C4Component
 ## Игры
 
 - **«Ничто»** — тестовая игра: ходы `PASS` по очереди, число раундов задаётся в настройках. Таймаут — пропуск хода (`INFO`). Итога нет.
-- **Шашки** — варианты правил (русские, международные, английские) задаются настройкой комнаты. `moveOptions` дают только типы действий (`MOVE`, `ACCEPT_DRAW`, `RESIGN`), пути проверяются по флагам `CheckersMoveRules`. Окончания: победа (`NO_PIECES`, `NO_MOVES`, `RESIGN`, `TIMEOUT`) и ничья (`DRAW_AGREED`, `REPETITION`, `ENDGAME_RULE`, `DRAW_RULE`). Цвета распределяются случайно по seed.
+- **Шашки** — simple: вариант правил (русские, международные, английские) и пресет времени; advanced: вариант (доска, первый ход) и флаги правил хода. `moveOptions` дают только типы действий (`MOVE`, `ACCEPT_DRAW`, `RESIGN`), пути проверяются по флагам `CheckersAdvancedRules`. Окончания: победа (`NO_PIECES`, `NO_MOVES`, `RESIGN`, `TIMEOUT`) и ничья (`DRAW_AGREED`, `REPETITION`, `ENDGAME_RULE`, `DRAW_RULE`). Цвета распределяются случайно по seed.
 - **Каркассон** — модуль появится, когда начнётся работа над правилами.
 
 ## Открытые вопросы

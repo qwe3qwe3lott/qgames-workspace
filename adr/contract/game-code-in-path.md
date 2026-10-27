@@ -11,7 +11,7 @@
 - **Код игры — единственный идентификатор игры** во всём стеке (`nothing`, `checkers`, `carcassonne`): в путях API, в URL портала, в дискриминаторе, в имени пакета игры. Enum `GameCode` сериализуется строчным кодом.
 - **Код игры — в пути:** `/api/games/{gameCode}/rooms/...` (создание, настройки, ход). В теле код не передаётся. Неизвестный код — 404 `GAME_NOT_FOUND`, несовпадение с игрой комнаты — 409 `GAME_TYPE_MISMATCH`.
 - Ход — конверт `{type, data}`, схемы `data` игр публикуются в components.
-- Настройки игры — **полиморфный `gameSettings`** (`oneOf` по `gameCode`). Границы и значения по умолчанию отдаёт `GET /api/games/{gameCode}` (`rules`).
+- Настройки игры — **полиморфные simple и advanced** (`oneOf` по `gameCode` в корне каждой группы, [room-settings](../game/room-settings.md)). Границы и значения по умолчанию отдаёт `GET /api/games/{gameCode}` (`rules`).
 
 ## Рассмотренные варианты
 
@@ -26,5 +26,5 @@
 
 ## Последствия
 
-- Новая игра добавляет вариант в union настроек и значение в `allowableValues` пути (чек-лист — `backend/games/CLAUDE.md`).
+- Новая игра добавляет варианты в union simple, advanced и границ настроек и значение в `allowableValues` пути (чек-лист — `backend/games/CLAUDE.md`).
 - Форма настроек на фронте ничего не хардкодит.

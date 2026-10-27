@@ -45,4 +45,4 @@ sequenceDiagram
 
 ## OpenAPI событий
 
-Union `SessionStreamEvent` по `type` (`SessionSnapshotEvent`, `SessionPatchStreamEvent`), внутри — `SessionPatchEvent` по `method`. `value` не типизирован. Строго типизированы только `state` снапшота (`SessionStateDto` — `oneOf` игр) и `meta.moveRules`: игра определяется по `meta.game.code`. Orval не генерирует fetch для `text/event-stream`, фронт берёт Zod-схемы событий из components.
+Union `SessionStreamEvent` по `type` (`SessionSnapshotEvent`, `SessionPatchStreamEvent`), внутри — `SessionPatchEvent` по `method`. `value` не типизирован. Строго типизированы только `state` снапшота (`SessionStateDto` — `oneOf` игр) и `meta.advancedRules`: игра определяется по `meta.game.code`. Orval не генерирует fetch для `text/event-stream`, фронт берёт Zod-схемы событий из components.
