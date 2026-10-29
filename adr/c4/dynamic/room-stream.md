@@ -42,6 +42,7 @@ sequenceDiagram
 | `member-joined` | `PUT [members, {id}]` участник | новый участник |
 | `member-left` | `DELETE [members, {id}]` | ушёл; отсутствующий игрок после конца партии |
 | `member-leaving` / `member-returned` | `PATCH [members, {id}] {leaving}` | игрок идущей партии отключился / вернулся |
+| `member-kicked` | `INFO {userId}` | владелец исключил участника; следом `member-left` или `member-leaving` |
 | `role-changed` | `PATCH [members, {id}] {role}` | смена роли |
 | `profile-changed` | `PATCH [members, {id}] {nickname, avatar}` | смена профиля в user-auth |
 | `owner-changed` | `PATCH [] {ownerId}` | новый владелец (null — присутствующих нет) |
@@ -49,7 +50,8 @@ sequenceDiagram
 | `session-started` / `session-ended` | `PATCH [] {status, session}` | старт; конец или отмена партии |
 | `room-deleted` | `INFO` | комната удалена, последнее событие, поток закрывается |
 
-- Одно событие — одна операция: уход владельца — `member-left` + `owner-changed`, конец партии — `session-ended` + `member-left` на каждого отсутствующего.
+- Одно событие — одна операция: уход владельца — `member-left` + `owner-changed`, конец партии — `session-ended` + `member-left` на каждого отсутствующего, кик — `member-kicked` + `member-left` (или `member-leaving`).
+- Кик (`DELETE /api/rooms/{id}/members/{userId}`, только владелец): подключения исключённого удаляются в той же транзакции. Для его подписчиков `member-kicked` последнее (`RoomEventResponseMapper.isLast`), диспетчер закрывает их потоки и потоки партий. Портал уводит исключённого на страницу игры с окном «Вас исключили».
 - seq — `room.event_seq`, растёт в транзакции изменения под блокировкой комнаты. Данные события фиксируются там же и идут в payload NOTIFY (лимит 8000 байт проверяет `RoomEventPublisher`), диспетчер в БД не ходит. `UserProfileListener` берёт блокировку каждой комнаты в своей транзакции.
 - Мутации комнаты (роль, владение, старт, настройки) отвечают 204: изменение приходит событием. `GET` комнаты на странице нужен только для ошибок.
 - Дыра в seq или неприменимый патч — фронт переоткрывает поток за свежим снапшотом. Переоткрытие — выход и вход: в заполненной комнате участник может вернуться наблюдателем. Дыра — признак бага: NOTIFY упорядочен, а обрыв LISTEN и так закрывает потоки.
