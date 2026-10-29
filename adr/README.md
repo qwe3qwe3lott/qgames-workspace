@@ -22,13 +22,13 @@
 | [c4/3-backend-games](c4/3-backend-games.md) | Модель игры: патчи, `GameRules`, блоки core |
 | [c4/3-frontend](c4/3-frontend.md) | Приложения и пакеты фронта, данные, SSE |
 | [c4/3-frontend-portal](c4/3-frontend-portal.md) | Маршруты и страницы портала и админки |
-| [c4/deployment](c4/deployment.md) | VPS, compose, бюджет памяти, локальный стенд |
+| [c4/deployment](c4/deployment.md) | VPS, CI и GHCR, compose-проекты, бюджет памяти, локальный стенд |
 | [dynamic/auth](c4/dynamic/auth.md) · [dynamic/room-stream](c4/dynamic/room-stream.md) · [dynamic/move](c4/dynamic/move.md) | Вход и refresh · поток комнаты и присутствие · ход и поток партии |
 | [erd/user-auth](erd/user-auth.md) · [erd/admin-auth](erd/admin-auth.md) · [erd/game](erd/game.md) | Схема БД по модулям |
 
 ## Решения (ADR)
 
-**Система** (`system/`): [repositories-layout](system/repositories-layout.md) — три репозитория и воркспейс · [game-data-compatibility](system/game-data-compatibility.md) — игры не версионируются · [hosting](system/hosting.md) — один VPS 1 ГБ, compose, образы из CI, DuckDNS · [memory-budget](system/memory-budget.md) — флаги JVM и PostgreSQL · [reverse-proxy](system/reverse-proxy.md) — nginx, TLS и HTTP/2, локальный HTTPS-домен, same-origin, CSP
+**Система** (`system/`): [repositories-layout](system/repositories-layout.md) — три репозитория и воркспейс · [game-data-compatibility](system/game-data-compatibility.md) — игры не версионируются · [hosting](system/hosting.md) — один VPS, два compose-проекта, GitHub Actions → GHCR → deploy.sh, DuckDNS · [memory-budget](system/memory-budget.md) — флаги JVM и PostgreSQL · [reverse-proxy](system/reverse-proxy.md) — nginx, TLS и HTTP/2, локальный HTTPS-домен, same-origin, CSP
 
 **Бэкенд** (`backend/`): [backend-architecture](backend/backend-architecture.md) — модульный монолит Spring Modulith · [game-rules-modules](backend/game-rules-modules.md) — правила игр в чистых Kotlin-модулях · [backend-stack](backend/backend-stack.md) — Spring MVC + virtual threads · [data-access](backend/data-access.md) — PostgreSQL, Exposed DSL, без сырого SQL · [backend-layers](backend/backend-layers.md) — модели, мапперы, двухслойный репозиторий, ошибки · [migrations](backend/migrations.md) — абстрактный Liquibase · [module-communication](backend/module-communication.md) — `-api`, события AFTER_COMMIT, join чужой таблицы · [scaling](backend/scaling.md) — один инстанс · [backend-testing](backend/backend-testing.md) — интеграционные тесты
 
@@ -36,7 +36,7 @@
 
 **Контракт** (`contract/`): [api-contract](contract/api-contract.md) — REST, две группы OpenAPI, `ProblemDetail.code` · [game-code-in-path](contract/game-code-in-path.md) — код игры в пути, полиморфные настройки · [api-client-generation](contract/api-client-generation.md) — Orval, коммит сгенерированного кода
 
-**Безопасность** (`security/`): [session-tokens](security/session-tokens.md) — HttpOnly-куки, без CORS и CSRF-токенов · [jwt-and-refresh](security/jwt-and-refresh.md) — ES256, ротация с окном терпимости · [admin-separation](security/admin-separation.md) — отдельная админка · [player-accounts](security/player-accounts.md) — регистрация через Google, неизменяемый логин
+**Безопасность** (`security/`): [session-tokens](security/session-tokens.md) — HttpOnly-куки, без CORS и CSRF-токенов · [jwt-and-refresh](security/jwt-and-refresh.md) — ES256, ротация с окном терпимости · [admin-separation](security/admin-separation.md) — отдельная админка · [player-accounts](security/player-accounts.md) — регистрация через Google, неизменяемый логин · [server-hardening](security/server-hardening.md) — SSH по ключу на 52022, ufw, пользователь deploy, certbot
 
 **Фронтенд** (`frontend/`): [frontend-monorepo](frontend/frontend-monorepo.md) — pnpm + Turborepo, один каталог версий · [frontend-apps](frontend/frontend-apps.md) — CSR SPA на Rsbuild · [frontend-architecture](frontend/frontend-architecture.md) — FSD · [frontend-libraries](frontend/frontend-libraries.md) — RHF + Zod, TS 6 · [server-state](frontend/server-state.md) — только TanStack Query, комната и партия из потоков · [frontend-game-logic](frontend/frontend-game-logic.md) — фронт не знает правил игр · [ui-kit](frontend/ui-kit.md) — Tailwind + shadcn · [room-ui](frontend/room-ui.md) — UX комнаты · [e2e-testing](frontend/e2e-testing.md) — Playwright, testIds, сценарии партий · [unit-testing](frontend/unit-testing.md) — Vitest для логики, без UI · [linting](frontend/linting.md) — gts + typescript-eslint strict · [file-naming](frontend/file-naming.md) — файлы по главному экспорту: компоненты PascalCase, остальное camelCase
 
