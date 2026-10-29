@@ -59,6 +59,7 @@ C4Component
 
 ## Партии (сессии комнаты)
 
+- **Seed партии** — случайный (`SecureRandom`). На локальном стенде (`qgames.game.session.seed-header-enabled`, профиль local) старт берёт seed из заголовка `X-Qgames-Seed`: так e2e-сценарии воспроизводят цвета и раздачи. Заголовок не входит в контракт и в проде игнорируется → [e2e-testing](../frontend/e2e-testing.md).
 - Таблицы общие для всех игр: `room_session` (статус, seed, `last_seq`, снапшот настроек, `move_deadline`), `room_session_player` (места), `room_session_event` (журнал). **Состояние не хранится:** это свёртка журнала.
 - **Любое изменение** (старт, ход, таймаут, пауза, продолжение, конец, отмена) проходит через `SessionJournalService` под `lock(room)`: полное состояние на `last_seq` → события → INSERT с seq от `last_seq + 1` → обновление `last_seq`, статуса, `move_deadline` → `pg_notify`. Поток — [dynamic/move](dynamic/move.md).
 - **Мутации партии отвечают 204**, результат приходит событиями потока партии. Старт возвращает комнату. В ответе комнаты партия краткая — `session {id, status}`.

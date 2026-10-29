@@ -19,6 +19,7 @@ C4Component
     Component(gui, "@qgames/game-ui", "React", "Презентационный игровой UI")
     Component(games, "@qgames/game-<код>", "React", "Доска и guard игры; отдельный чанк")
   }
+  Component(e2e, "e2e", "Playwright", "Модели страниц по *.test-ids.ts, сценарии партий")
 
   Rel(portal, api, "")
   Rel(admin, api, "только /admin")
@@ -30,6 +31,8 @@ C4Component
   Rel(games, gcore, "")
   Rel(api, web, "fetch, credentials include")
   Rel(portal, web, "EventSource", "SSE")
+  Rel(e2e, portal, "test-ids, браузер")
+  Rel(e2e, admin, "test-ids, браузер")
 
   UpdateLayoutConfig($c4ShapeInRow="5", $c4BoundaryInRow="1")
 ```
@@ -43,6 +46,7 @@ C4Component
 | `@qgames/game-core` | Чистые функции партии: применитель патчей, сверка seq, guard'ы core, `activeTimer`, `playerClock` | [frontend-game-logic](../frontend/frontend-game-logic.md) |
 | `@qgames/game-ui` | Аватар, список игроков, часы, конец партии. Только props, без запросов и сторов | [frontend-game-logic](../frontend/frontend-game-logic.md) |
 | `@qgames/game-<код>` | Модуль игры `{Board, isGameState}`; портал грузит его только динамическим `import()` | [frontend-game-logic](../frontend/frontend-game-logic.md) |
+| `e2e` (`@qgames/e2e`) | E2E на Playwright против поднятых стендов: модели по `*.test-ids.ts` компонентов, фикстуры `testPortal`/`testAdmin`, акторы, сценарии партий из JSON | [e2e-testing](../frontend/e2e-testing.md) |
 | `@qgames/config` | tsconfig, ESLint (gts + strict + FSD boundaries), Stylelint, Prettier | [linting](../frontend/linting.md) |
 
 ## Данные и состояние
@@ -56,7 +60,7 @@ C4Component
 
 - Обёртка `apps/portal/src/shared/lib/sse` (`createEventStream`): `EventSource` с `withCredentials`, каждое сообщение проверяется Zod-схемой union событий из components. Закрытый поток (в том числе 401) → `refreshSession()` и переподключение с backoff 1 → 30 с. Гостя обёртка не переподключает.
 - URL SSE-ручек собирается через `resolveUrl`: Orval эти ручки не генерирует.
-- **Поток комнаты** пишет в кеш `GET /api/rooms/{id}` (`entities/room/model/use-room-events.ts`): `snapshot` заменяет данные целиком, `users-changed` и `settings-changed` — свои поля, `session-changed` перечитывает комнату, `room-deleted` закрывает поток → [dynamic/room-stream](dynamic/room-stream.md).
+- **Поток комнаты** пишет в кеш `GET /api/rooms/{id}` (`entities/room/model/use-room-events.ts`): `snapshot` заменяет данные целиком, `users-changed` и `settings-changed` — свои поля, `session-changed` перечитывает комнату, `room-deleted` закрывает поток → [dynamic/room-stream](dynamic/room-stream.md). У запроса комнаты на её странице `staleTime: Infinity`: комнату загружает маршрут, дальше её ведёт поток, а перезапрос только явный (`invalidateRoom`). Иначе фоновый перезапрос при монтировании мог прийти после снапшота и затереть его.
 - **Поток партии** хранит состояние в кеше Query под ключом `['session-stream', sessionId]` (`entities/session`). Seq сверяется: повтор отбрасывается, а дыра, сообщение не по контракту, ошибка патча или провал guard'ов закрывают поток и открывают заново за свежим снапшотом. Если статус не `IN_PROGRESS`, поток закрывается без переподключения → [dynamic/move](dynamic/move.md).
 
 ## Партия на фронте
