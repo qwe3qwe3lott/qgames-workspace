@@ -10,7 +10,7 @@
 
 - **REST/JSON**, контракт — интерфейсы и DTO `<m>-api`, опубликованные **двумя группами OpenAPI**: `portal` (`/api/**` кроме `/api/admin/**`) и `admin` (`/api/admin/**`). Swagger один, с выбором группы.
 - **Ошибки — `ProblemDetail` с машиночитаемым `code`**, коды — часть контракта. UI ветвится только по `code`.
-- Swagger на русском: у каждой ручки `@Operation`, `@ApiResponses` со всеми статусами и кодами ошибок, теги латиницей (по ним Orval раскладывает файлы).
+- Swagger на русском: у каждой ручки `@Operation`, `@ApiResponses` со всеми статусами и кодами ошибок, теги латиницей (по ним Orval раскладывает файлы), массив `tags` документа отсортирован по имени (`SortedTagsCustomizer`), чтобы клиент не менялся без изменения контракта.
 - `required` выводится из nullability Kotlin (`KotlinRequiredPropertiesConverter`). Полиморфные DTO — `oneOf` + `discriminator` без `allOf` (`DiscriminatedUnionCustomizer`). Ключи документа отсортированы.
 - Токенов в контракте нет: они живут в куках ([session-tokens](../security/session-tokens.md)).
 - Форму контракта проверяют `PortalOpenApiContractScenariosTest` и `AdminOpenApiContractScenariosTest`.
