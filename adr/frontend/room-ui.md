@@ -1,6 +1,6 @@
 # Интерфейс комнаты
 
-Область: frontend · Диаграммы: [c4/3-frontend-portal](../c4/3-frontend-portal.md) · Код: `features/room-membership`, `pages/room`, `shared/ui` (`WithHint`)
+Область: frontend · Диаграммы: [c4/3-frontend-portal](../c4/3-frontend-portal.md) · Код: `features/roomMembership`, `pages/room`, `shared/ui` (`WithHint`)
 
 ## Контекст
 

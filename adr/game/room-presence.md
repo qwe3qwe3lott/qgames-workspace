@@ -1,6 +1,6 @@
 # Присутствие в комнате
 
-Область: backend, frontend · Диаграммы: [c4/dynamic/room-stream](../c4/dynamic/room-stream.md), [erd/game](../erd/game.md) · Код: `room_connection`, `RoomConnectionHeartbeatJob`, `RoomConnectionCleanupJob`, `use-room-presence.ts`
+Область: backend, frontend · Диаграммы: [c4/dynamic/room-stream](../c4/dynamic/room-stream.md), [erd/game](../erd/game.md) · Код: `room_connection`, `RoomConnectionHeartbeatJob`, `RoomConnectionCleanupJob`, `useRoomPresence.ts`
 
 ## Контекст
 

@@ -1,6 +1,6 @@
 # Серверные данные на фронте
 
-Область: frontend · Диаграммы: [c4/3-frontend](../c4/3-frontend.md), [c4/dynamic/room-stream](../c4/dynamic/room-stream.md), [c4/dynamic/move](../c4/dynamic/move.md) · Код: `entities/room/model/use-room-events.ts`, `entities/session`
+Область: frontend · Диаграммы: [c4/3-frontend](../c4/3-frontend.md), [c4/dynamic/room-stream](../c4/dynamic/room-stream.md), [c4/dynamic/move](../c4/dynamic/move.md) · Код: `entities/room/model/useRoomEvents.ts`, `entities/session`
 
 ## Контекст
 
