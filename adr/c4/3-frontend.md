@@ -65,4 +65,4 @@ C4Component
 
 ## Партия на фронте
 
-Фронт не знает правил игры: применяет патчи общим `applySessionEvent` и рисует только `moveOptions`. Единственное исключение — подсказки ввода пути по флагам `meta.advancedRules`. Состояние проверяется на каждом шаге: общая схема `status`/`meta`, совпадение `meta.game.code` с игрой комнаты, guard core `isCoreState` и guard игровых полей `isGameState`. Любой провал — переподключение. Часы показываются по `activeTimer`, отсчёт идёт с поправкой `clockOffsetMs` по `serverTime` снапшота.
+Фронт не знает правил игры: применяет патчи общим `applySessionEvent` и рисует только `moveOptions`. Единственное исключение — подсказки ввода пути по флагам `meta.advancedRules`. Состояние проверяется на каждом шаге: общая схема `status`/`meta`, совпадение `meta.game.code` с игрой комнаты, guard core `isCoreState` и guard игровых полей `isGameState`. Любой провал — переподключение. Часы показываются по `activeTimer` компонентом `Clock` (запас и при задержке — её зона, [time-control](../game/time-control.md)), отсчёт идёт с поправкой `clockOffsetMs` по `serverTime` снапшота.

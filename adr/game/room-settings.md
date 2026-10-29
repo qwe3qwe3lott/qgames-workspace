@@ -10,7 +10,7 @@
 
 - Настройки — три группы `{room, simple, advanced}`:
   - **room** — сама комната (`maxSpectators`, 0–12, по умолчанию 8). Меняется в любой момент.
-  - **advanced** — корневые правила: по ним идёт партия, её снимок пишется в `room_session.settings` и в `meta.game.settings`. Часы — общий блок `TimeControlDto {enabled, baseSeconds, incrementSeconds}`.
+  - **advanced** — корневые правила: по ним идёт партия, её снимок пишется в `room_session.settings` и в `meta.game.settings`. Часы — общий блок `TimeControlDto {enabled, baseSeconds, bonusType, bonusSeconds}` ([time-control](time-control.md)).
   - **simple** — простые правила, чтобы не нагружать новых и казуальных игроков (вариант + пресет времени игры). Из него бэкенд выводит advanced (`GameRules.toAdvanced`).
 - simple и advanced — **взаимоисключающий режим** комнаты. В ответе advanced есть всегда, simple = null означает advanced-режим. Обе группы меняются только между партиями, все их поля обязательны.
 - Какие правила владелец задаёт в advanced, решает игра. Остальное выводится из advanced (`GameRules.advancedRules` → `meta.advancedRules`).
