@@ -20,6 +20,7 @@ erDiagram
     uuid current_session_id "nullable, без FK"
     timestamptz empty_since "nullable, room_empty_since_idx"
     json settings "room, simple или null, advanced"
+    bigint event_seq "seq последнего события потока комнаты"
     timestamptz created_at
   }
   room_member {

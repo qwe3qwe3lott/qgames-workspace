@@ -10,10 +10,10 @@ C4Component
     Component(engine, "SessionEngine", "game-core", "Старт, конец, отмена; проверяет итог")
     Component(rules, "GameRules", "games/<игра>", "decide, moveOptions, mask, onTimeout")
     Component(core, "Блоки core", "game-core", "Players, Turns, Timer, Result")
-    Component(patchB, "SessionPatch", "game-core + Jackson в game", "Применитель патчей")
+    Component(patchB, "DocumentPatch", "libs/doc-patch + Jackson в game", "Применитель патчей")
   }
   Container_Boundary(fe, "Портал") {
-    Component(patchF, "applySessionEvent", "@qgames/game-core", "Тот же применитель на TS")
+    Component(patchF, "applyPatch", "@qgames/doc-patch", "Тот же применитель на TS")
     Component(board, "Доска игры", "@qgames/game-<код>", "Рисует только moveOptions")
   }
 
@@ -36,7 +36,7 @@ C4Component
 | `method` | `PUT` — заменить или создать (по ненайденному `{id}` — добавить в конец); `PATCH` — неглубокое слияние, `null` — это значение; `DELETE` — удалить поле или элемент; `INFO` — без изменений, только данные для журнала |
 | `path` | Сегменты: строка — ключ объекта, `{id}` — элемент массива по id (у элементов адресуемых массивов `id` обязателен) |
 
-Одно событие — одна операция. Действие, меняющее несколько мест, порождает несколько событий, каждое со своим seq. Неподходящий путь — `SessionPatchException`: на сервере это баг, на фронте — переподключение.
+Одно событие — одна операция. Действие, меняющее несколько мест, порождает несколько событий, каждое со своим seq. Неподходящий путь — `DocumentPatchException`: на сервере это баг, на фронте — переподключение.
 
 ## `GameRules` — что задаёт игра
 

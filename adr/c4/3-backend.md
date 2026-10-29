@@ -41,12 +41,12 @@ C4Component
 | `game` | Каталог игр, комнаты, участники, присутствие, партии и их журнал, SSE, таймеры | `/api/games/*`, `/api/rooms/*` | `backend/game/{game,game-api}` → [3-backend-game](3-backend-game.md) |
 | `games/*` | Правила игр без Spring и IO: `game-core` (модель и общие блоки), `nothing-game`, `checkers-game` | — | `backend/games/*` → [3-backend-games](3-backend-games.md) |
 | `app` | `@SpringBootApplication`, Security, группы OpenAPI, `application.yml`, сводный Liquibase-master, все интеграционные тесты | — | `backend/app` |
-| `libs/*` | Инфраструктура без бизнес-логики: `common-exception`, `common-web`, `common-test` | — | `backend/libs` |
+| `libs/*` | Инфраструктура без бизнес-логики: `common-exception`, `common-web`, `common-test`, `doc-patch` (применитель событий-патчей) | — | `backend/libs` |
 
 ## Границы и связи модулей
 
 - Модуль = `<m>/<m>` (реализация) + `<m>/<m>-api` (публичный контракт: REST-интерфейсы, DTO, события, публичные описания таблиц). Модуль зависит только от `libs/*`, `games/*` и чужих `-api`. Границы проверяет `ModularityTest` → [module-communication](../backend/module-communication.md).
-- Сейчас межмодульная связь одна: **game → user-auth-api**. game читает ник и аватар через `UserProfileTable` (join, только чтение) и слушает `UserProfileChanged`, после чего рассылает `users-changed` в комнаты пользователя.
+- Сейчас межмодульная связь одна: **game → user-auth-api**. game читает ник и аватар через `UserProfileTable` (join, только чтение) и слушает `UserProfileChanged`, после чего публикует `profile-changed` в комнаты пользователя.
 - Слои внутри модуля: контроллер → сервис → фасад-репозиторий → `…ExposedRepository`. DTO только в контроллерах → [backend-layers](../backend/backend-layers.md).
 
 ## Security и аутентификация
