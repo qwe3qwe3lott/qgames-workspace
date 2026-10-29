@@ -9,6 +9,7 @@
 | Админка, `@Order(1)` | `/api/admin/**` | кука `admin_access_token` или Bearer, issuer `qgames-admin-auth` | `/api/admin/auth/**` |
 | Портал, `@Order(2)` | всё остальное | кука `access_token` или Bearer, issuer `qgames-user-auth` | `/api/auth/**`, `GET /api/games`, `GET /api/games/*`, Swagger, `/actuator/health/**` |
 
+- Первым в обеих цепочках стоит `FetchMetadataFilter`: межсайтовый запрос к `/api/**` (`Sec-Fetch-Site` `cross-site`/`same-site` или `Sec-Fetch-Mode: navigate`) получает 403 `CROSS_SITE_REQUEST` ещё до проверки токена.
 - Токен игрока не проходит в админку, токен админа — на портал: у них разные ключи и issuer. Без токена или с недействительным — 401 `UNAUTHENTICATED`.
 - JWT проверяется локально по публичному ключу из конфигурации (`NimbusJwtDecoder` + `SingleKeyJWSKeySelector`, JWKS-эндпоинта нет): подпись ES256, срок, issuer. `kid` не сверяется.
 - На ручках аутентификации access-токен не читается (`CookieBearerTokenResolver`), поэтому протухшая кука не ломает refresh. На permitAll-ручках каталога протухшая кука даёт 401 — принято осознанно.
