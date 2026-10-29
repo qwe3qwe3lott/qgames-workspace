@@ -28,7 +28,7 @@
 
 ## Решения (ADR)
 
-**Система** (`system/`): [repositories-layout](system/repositories-layout.md) — три репозитория и воркспейс · [game-data-compatibility](system/game-data-compatibility.md) — игры не версионируются · [hosting](system/hosting.md) — один VPS 1 ГБ, compose, образы из CI · [memory-budget](system/memory-budget.md) — флаги JVM и PostgreSQL · [reverse-proxy](system/reverse-proxy.md) — nginx, same-origin, CSP
+**Система** (`system/`): [repositories-layout](system/repositories-layout.md) — три репозитория и воркспейс · [game-data-compatibility](system/game-data-compatibility.md) — игры не версионируются · [hosting](system/hosting.md) — один VPS 1 ГБ, compose, образы из CI, DuckDNS · [memory-budget](system/memory-budget.md) — флаги JVM и PostgreSQL · [reverse-proxy](system/reverse-proxy.md) — nginx, TLS и HTTP/2, локальный HTTPS-домен, same-origin, CSP
 
 **Бэкенд** (`backend/`): [backend-architecture](backend/backend-architecture.md) — модульный монолит Spring Modulith · [game-rules-modules](backend/game-rules-modules.md) — правила игр в чистых Kotlin-модулях · [backend-stack](backend/backend-stack.md) — Spring MVC + virtual threads · [data-access](backend/data-access.md) — PostgreSQL, Exposed DSL, без сырого SQL · [backend-layers](backend/backend-layers.md) — модели, мапперы, двухслойный репозиторий, ошибки · [migrations](backend/migrations.md) — абстрактный Liquibase · [module-communication](backend/module-communication.md) — `-api`, события AFTER_COMMIT, join чужой таблицы · [scaling](backend/scaling.md) — один инстанс · [backend-testing](backend/backend-testing.md) — интеграционные тесты
 

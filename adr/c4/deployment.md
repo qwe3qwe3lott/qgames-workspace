@@ -1,6 +1,6 @@
 # C4 · Развёртывание
 
-Прод — один VPS на 1 ГБ RAM под docker compose, без k8s. Прод-деплой пока не делался. CI, registry, DuckDNS, TLS и бэкапы решаются при деплое ([hosting](../system/hosting.md)).
+Прод — один VPS на 1 ГБ RAM под docker compose, без k8s, домен `qgames.duckdns.org`. Прод-деплой пока не делался. CI, registry, источник TLS-сертификатов и бэкапы решаются при деплое ([hosting](../system/hosting.md)).
 
 ```mermaid
 C4Deployment
@@ -12,7 +12,7 @@ C4Deployment
 
   Deployment_Node(vps, "VPS 1 ГБ", "Linux, Docker") {
     Deployment_Node(compose, "docker compose", "mem_limit = memswap_limit") {
-      Container(web, "web", "nginx-unprivileged, 48m", "TLS, статика, proxy /api")
+      Container(web, "web", "nginx-unprivileged, 48m", "TLS + HTTP/2, статика, proxy /api")
       Container(app, "app", "JDK 25, 512m", "Spring Boot, порт 8080")
       ContainerDb(db, "postgres", "PostgreSQL 18, 128m", "Том с данными")
     }
@@ -22,7 +22,7 @@ C4Deployment
     Container(registry, "registry", "Docker images", "Образы app и web")
   }
 
-  Rel(spa, web, "HTTPS", "<домен>, admin.<домен>")
+  Rel(spa, web, "HTTPS :443", "qgames.duckdns.org, admin.qgames.duckdns.org")
   Rel(web, app, "HTTP/1.1", "proxy_buffering off")
   Rel(app, db, "JDBC", "пул 5 + LISTEN")
   Rel(registry, app, "Образы app и web", "docker compose pull")
@@ -47,7 +47,7 @@ C4Deployment
 
 ## Сеть и proxy
 
-- Наружу открыт только `web` с TLS. Один образ nginx обслуживает два server-блока: портал (`:3000` локально) и админку (`:3001`). Портал проксирует `/api/` кроме `/api/admin/` (на него 404), админка — только `/api/admin/`. В upstream попадает только IPv4-адрес `API_UPSTREAM`: по IPv6 `host.docker.internal` подключение падает с 502.
+- Наружу открыт только `web`: 443 (TLS, HTTP/2) и 80 (редирект на HTTPS, `/healthz` для healthcheck). Один образ nginx обслуживает два server-блока на одном порту, различаемых по `server_name`: портал и админку. Сертификат на оба имени — том `/etc/nginx/certs`, чужое имя получает обрыв TLS-рукопожатия. Портал проксирует `/api/` кроме `/api/admin/` (на него 404), админка — только `/api/admin/`. В upstream попадает только IPv4-адрес `API_UPSTREAM`: по IPv6 `host.docker.internal` подключение падает с 502.
 - **SSE через proxy:** app отдаёт `X-Accel-Buffering: no`, у nginx `proxy_buffering off`, `proxy_read_timeout 60s` (длиннее ping потоков в 5 с), HTTP/1.1 с пустым `Connection`.
 - Заголовки безопасности и CSP ставит nginx на всех ответах, включая API → [reverse-proxy](../system/reverse-proxy.md).
 - Swagger и OpenAPI в проде выключены (`API_DOCS_ENABLED=false`, ручки отвечают 404). Проверяется вручную на стенде: `API_DOCS_ENABLED=false docker compose up -d --wait app`.
@@ -57,7 +57,9 @@ C4Deployment
 | Что | Где | Как поднять |
 |---|---|---|
 | app + postgres | `backend/docker-compose.yml`, профиль `local` | `docker compose up --build -d --wait` |
-| web (оба SPA) | `frontend/docker-compose.yml`, `API_UPSTREAM` = `host.docker.internal:8080` | `docker compose up --build -d --wait` |
-| dev-режим фронта | Rsbuild dev-server + `server.proxy` | `pnpm dev` (portal :3000, admin :3001) |
+| web (оба SPA) | `frontend/docker-compose.yml`, `API_UPSTREAM` = `host.docker.internal:8080` | `docker compose up --build -d --wait` → `https://<LOCAL_DOMAIN>`, `https://admin.<LOCAL_DOMAIN>` |
+| dev-режим фронта | Rsbuild dev-server с HTTPS (`frontend/packages/config/local-https`) + `server.proxy` | `pnpm dev` → те же имена с портами :3000 и :3001 |
+
+`LOCAL_DOMAIN` — `.env` корня фронта (по умолчанию `local.qgames.duckdns.org`), оба имени — в `hosts` на 127.0.0.1, сертификат mkcert — `frontend/docker/certs/` (для nginx и dev-сервера). Поддомены `duckdns.org` — один сайт, как в проде, и Google OAuth принимает их как origin. Настройка — README фронтенда.
 
 Профиль `local` добавляет первого админа `admin`/`admin` и тестовых игроков `qwe3qwe1…10` с паролем `qwe3qwe3`. Переменные `PUBLIC_*` фронта вшиваются в сборку из `apps/<app>/.env`.

@@ -12,6 +12,7 @@
 - **Образы собираются в CI** и пушатся в registry, на VPS выполняется только `docker compose pull`.
 - Образ app собирается multi-stage Dockerfile (`:app:bootJar`). Образ `web` — nginx со статикой обоих SPA ([reverse-proxy](reverse-proxy.md)).
 - Swagger и OpenAPI в проде выключены (`API_DOCS_ENABLED=false`).
+- **Домен — DuckDNS:** портал `qgames.duckdns.org`, админка `admin.qgames.duckdns.org`. Локальный стенд — те же правила на `LOCAL_DOMAIN` (`local.qgames.duckdns.org` в `hosts`), [reverse-proxy](reverse-proxy.md).
 
 ## Рассмотренные варианты
 
@@ -28,4 +29,4 @@
 
 ## Открытые вопросы
 
-- Решить при деплое: CI (GitHub Actions или GitLab CI), registry, секреты, DuckDNS, TLS, бэкапы PostgreSQL (`pg_dump` по расписанию с копиями вне VPS), профиль `prod`.
+- Решить при деплое: CI (GitHub Actions или GitLab CI), registry, секреты, обновление IP в DuckDNS, источник TLS-сертификатов ([reverse-proxy](reverse-proxy.md)), бэкапы PostgreSQL (`pg_dump` по расписанию с копиями вне VPS), профиль `prod`.
