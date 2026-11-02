@@ -47,7 +47,8 @@ C4Component
 - `mask(event, viewerKey)` — маскирует `value` для проекций `Full`/`Public`/`Player(id)`. Замаскированное событие доставляется со своим seq. Инвариант «свёртка маскированных = маска полной свёртки» обязателен к тесту;
 - настройки двух уровней ([room-settings](../game/room-settings.md)): `simpleClass`, `advancedClass`, `defaultSimple`, `validateSimple`/`validateAdvanced`, `toAdvanced(simple)`, `clock(advanced)` — часы; `start` и `decide` получают только advanced;
 - `advancedRules(advanced)` — итоговые правила для подсказок ввода на клиенте (`meta.advancedRules`), `onTimeout(state, settings, seed)`;
-- границы настроек и пресеты (`settingsLimits`, `GET /api/games/{gameCode}`), поля игры у игрока (`playerClass`), границы часов (`TimeControlRules`).
+- границы настроек и пресеты (`settingsLimits`, `GET /api/games/{gameCode}`), поля игры у игрока (`playerClass`), границы часов (`TimeControlRules`);
+- статичные данные для отрисовки (`assets`, по умолчанию null): одни на все партии, поэтому не в состоянии, а в карточке игры (`GameDetailsResponse.assets`, union по `gameCode`), например каталог тайлов «Круассана».
 
 Случайность берётся только из seed партии: журнал воспроизводим при переигрывании.
 
@@ -66,7 +67,7 @@ C4Component
 
 - **«Ничто»** — тестовая игра: ходы `PASS` по очереди, число раундов задаётся в настройках. Таймаут — пропуск хода (`INFO`). Итога нет. Скрыта из каталога (`HIDDEN`), открывается по ссылке.
 - **Шашки** — simple: вариант правил (русские, международные, английские) и пресет времени; advanced: доска (8 или 10), первый ход, правила окончаний (`CheckersEndgameRule`), счётчик ничьей по ходам дамками и флаги правил хода; варианты — пресеты этих полей (`RULE_PRESETS`, в границах настроек — `rulePresets`). `moveOptions` дают только типы действий (`MOVE`, `ACCEPT_DRAW`, `RESIGN`), пути проверяются по флагам `CheckersAdvancedRules`. Окончания: победа (`NO_PIECES`, `NO_MOVES`, `RESIGN`, `TIMEOUT`) и ничья (`DRAW_AGREED`, `REPETITION`, `ENDGAME_RULE`, `DRAW_RULE`). Цвета (`colorAssignment`): RANDOM — случайно по seed, сразу стадия `play`; FIRST_PICK — стадия `color-pick` (`PICK_COLOR` у обоих, общий отсчёт 30 с, затем случайно; `color-picked`, `color-pick-timed-out`).
-- **Круассан** (`croissant`, игра на выкладывание тайлов) — сеть пекарен: одна стадия `play`, ход из двух шагов (`PLACE_TILE`, затем `PLACE_CONFECTIONER` или `SKIP_CONFECTIONER`), каталог тайлов в состоянии, порядок колоды из seed, участки сети пересобираются из поля после каждого тайла. Крошки: пекарня 2 за тайл + 2 за вывеску, тропа 1 за тайл, сыроварня 9, луг — только в итоге. Модель и её обоснование — [tile-network](../game/tile-network.md).
+- **Круассан** (`croissant`, игра на выкладывание тайлов) — сеть пекарен: одна стадия `play`, ход из двух шагов (`PLACE_TILE`, затем `PLACE_CONFECTIONER` или `SKIP_CONFECTIONER`), каталог тайлов в карточке игры (`assets`), порядок колоды из seed, участки сети пересобираются из поля после каждого тайла. Крошки: пекарня 2 за тайл + 2 за вывеску, тропа 1 за тайл, сыроварня 9, луг — только в итоге. Модель и её обоснование — [tile-network](../game/tile-network.md).
 
 ## Открытые вопросы
 
