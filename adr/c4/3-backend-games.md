@@ -1,6 +1,6 @@
 # C4 · Уровень 3 — модель игры (`games/*` и общий применитель патчей)
 
-Одна модель на бэкенде и фронте: сервер порождает события-патчи, обе стороны применяют их одним общим применителем. Решения: [session-state](../game/session-state.md), [game-rules-modules](../backend/game-rules-modules.md), [frontend-game-logic](../frontend/frontend-game-logic.md). Чек-лист новой игры — `backend/games/CLAUDE.md`.
+Одна модель на бэкенде и фронте: сервер порождает события-патчи, обе стороны применяют их одним общим применителем. Решения: [session-state](../game/session-state.md), [session-stages](../game/session-stages.md), [game-rules-modules](../backend/game-rules-modules.md), [frontend-game-logic](../frontend/frontend-game-logic.md). Чек-лист новой игры — `backend/games/CLAUDE.md`.
 
 ```mermaid
 C4Component
@@ -9,7 +9,7 @@ C4Component
   Container_Boundary(be, "app") {
     Component(engine, "SessionEngine", "game-core", "Старт, конец, отмена; проверяет итог")
     Component(rules, "GameRules", "games/<игра>", "decide, moveOptions, mask, onTimeout")
-    Component(core, "Блоки core", "game-core", "Players, Turns, Timer, Result")
+    Component(core, "Блоки core", "game-core", "Stages, Players, Turns, Timer, Result")
     Component(patchB, "DocumentPatch", "libs/doc-patch + Jackson в game", "Применитель патчей")
   }
   Container_Boundary(fe, "Портал") {
@@ -40,12 +40,13 @@ C4Component
 
 ## `GameRules` — что задаёт игра
 
-- `start` — начальное состояние. `SessionEngine` превращает его в первое событие `session-started` = `PUT [] {status, meta: {game: {code, settings}, advancedRules}, state}`, где `settings` — advanced-настройки партии;
-- `decide(state, settings, playerId, move)` → `Rejected(code)` или `Accepted(events)`;
+- `start` — первая стадия и её начальное состояние. `SessionEngine` превращает его в первое событие `session-started` = `PUT [] {status, meta: {game: {code, settings}, advancedRules}, state}`, где `settings` — advanced-настройки партии;
+- `decide(state, settings, seed, playerId, move)` → `Rejected(code)` или `Accepted(events)`; seed — серверный, клиенту не уходит;
+- стадии ([session-stages](../game/session-stages.md)): классы по стадии (`gameStateClass`, `moveClass`, `playerClass`), часы стадии `timer(settings, stage)`, переход `Stages.changed`;
 - `moveOptions(state, playerId)` — допустимые действия. Фронт правил не знает и рисует только их;
 - `mask(event, viewerKey)` — маскирует `value` для проекций `Full`/`Public`/`Player(id)`. Замаскированное событие доставляется со своим seq. Инвариант «свёртка маскированных = маска полной свёртки» обязателен к тесту;
 - настройки двух уровней ([room-settings](../game/room-settings.md)): `simpleClass`, `advancedClass`, `defaultSimple`, `validateSimple`/`validateAdvanced`, `toAdvanced(simple)`, `clock(advanced)` — часы; `start` и `decide` получают только advanced;
-- `advancedRules(advanced)` — итоговые правила для подсказок ввода на клиенте (`meta.advancedRules`), `onTimeout(state)`;
+- `advancedRules(advanced)` — итоговые правила для подсказок ввода на клиенте (`meta.advancedRules`), `onTimeout(state, settings, seed)`;
 - границы настроек и пресеты (`settingsLimits`, `GET /api/games/{gameCode}`), поля игры у игрока (`playerClass`), границы часов (`TimeControlRules`).
 
 Случайность берётся только из seed партии: журнал воспроизводим при переигрывании.
@@ -54,16 +55,17 @@ C4Component
 
 | Блок | Форма | Коды |
 |---|---|---|
-| Игроки | `players: [{id, moveOptions, …поля игры}]`; чужим `moveOptions` маскируются в `[]` | `move-options-changed` |
+| Стадия | `stage` — код текущей стадии (`play` у игры из одной стадии); `state` — состояние текущей стадии | `stage-changed` (`PUT ["state"]`, маскируется как начальное состояние) |
+| Игроки | `players: [{id, moveOptions, …поля игры стадии}]`; чужим `moveOptions` маскируются в `[]` | `move-options-changed` |
 | Очерёдность | `turns: {currentPlayerId, round, rounds}` | `turn-changed` |
-| Часы | `timer: {status, deadline, pausedAt, clocks}` или `null` | `clock-switched`, `timer-stopped`, `game-paused`, `game-resumed` |
+| Часы | `timer: {kind: PLAYERS|STAGE, status, deadline, pausedAt, clocks}` или `null`; STAGE — общий отсчёт стадии, `clocks` пуст | `timer-started` (после `stage-changed`), `clock-switched`, `timer-stopped`, `game-paused`, `game-resumed` |
 | Итог | `result: {outcome: WIN\|DRAW, winnerIds, reason}` или `null`; фронт показывает через `GameOver`, текст `reason` — в пакете игры | `result-set` — один раз, вместе с `session-finished` |
 | Сессия | — | `session-started`, `session-finished`, `session-cancelled` |
 
 ## Игры
 
 - **«Ничто»** — тестовая игра: ходы `PASS` по очереди, число раундов задаётся в настройках. Таймаут — пропуск хода (`INFO`). Итога нет. Скрыта из каталога (`HIDDEN`), открывается по ссылке.
-- **Шашки** — simple: вариант правил (русские, международные, английские) и пресет времени; advanced: доска (8 или 10), первый ход, правила окончаний (`CheckersEndgameRule`), счётчик ничьей по ходам дамками и флаги правил хода; варианты — пресеты этих полей (`RULE_PRESETS`, в границах настроек — `rulePresets`). `moveOptions` дают только типы действий (`MOVE`, `ACCEPT_DRAW`, `RESIGN`), пути проверяются по флагам `CheckersAdvancedRules`. Окончания: победа (`NO_PIECES`, `NO_MOVES`, `RESIGN`, `TIMEOUT`) и ничья (`DRAW_AGREED`, `REPETITION`, `ENDGAME_RULE`, `DRAW_RULE`). Цвета распределяются случайно по seed.
+- **Шашки** — simple: вариант правил (русские, международные, английские) и пресет времени; advanced: доска (8 или 10), первый ход, правила окончаний (`CheckersEndgameRule`), счётчик ничьей по ходам дамками и флаги правил хода; варианты — пресеты этих полей (`RULE_PRESETS`, в границах настроек — `rulePresets`). `moveOptions` дают только типы действий (`MOVE`, `ACCEPT_DRAW`, `RESIGN`), пути проверяются по флагам `CheckersAdvancedRules`. Окончания: победа (`NO_PIECES`, `NO_MOVES`, `RESIGN`, `TIMEOUT`) и ничья (`DRAW_AGREED`, `REPETITION`, `ENDGAME_RULE`, `DRAW_RULE`). Цвета (`colorAssignment`): RANDOM — случайно по seed, сразу стадия `play`; FIRST_PICK — стадия `color-pick` (`PICK_COLOR` у обоих, общий отсчёт 30 с, затем случайно; `color-picked`, `color-pick-timed-out`).
 - **Круассан** (`croissant`, игра на выкладывание тайлов) — модуль появится, когда начнётся работа над правилами.
 
 ## Открытые вопросы
