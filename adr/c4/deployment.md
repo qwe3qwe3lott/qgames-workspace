@@ -57,7 +57,7 @@ C4Deployment
 ## Сеть и proxy
 
 - Наружу открыт только `web`: 443 (TLS, HTTP/2) и 80 (редирект на HTTPS, `/healthz` для healthcheck). Один образ nginx обслуживает два server-блока на одном порту, различаемых по `server_name`: портал и админку. Сертификат на оба имени — том `/etc/nginx/certs`, чужое имя получает обрыв TLS-рукопожатия. Портал проксирует `/api/` кроме `/api/admin/` (на него 404), админка — только `/api/admin/`. В проде upstream — `app:8080` с `resolve` через DNS Docker (сеть `qgames`); локально — только IPv4-адрес `host.docker.internal`: по IPv6 подключение падает с 502. На :80 ещё отдаётся `/.well-known/acme-challenge/` для certbot.
-- ufw: входящие только 52022 (SSH), 80, 443; postgres и app портов наружу не публикуют.
+- ufw: входящие только 52022 (SSH), 80, 443; app портов не публикует, postgres — только на `127.0.0.1:5432` (доступ к БД — SSH-туннелем, см. [server-hardening](../security/server-hardening.md)).
 - **SSE через proxy:** app отдаёт `X-Accel-Buffering: no`, у nginx `proxy_buffering off`, `proxy_read_timeout 60s` (длиннее ping потоков в 5 с), HTTP/1.1 с пустым `Connection`.
 - Заголовки безопасности и CSP ставит nginx на всех ответах, включая API → [reverse-proxy](../system/reverse-proxy.md).
 - Swagger и OpenAPI в проде выключены профилем `prod` (ручки отвечают 404). На стенде то же проверяется `API_DOCS_ENABLED=false docker compose up -d --wait app`.
