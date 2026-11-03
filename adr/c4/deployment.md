@@ -68,6 +68,7 @@ C4Deployment
 |---|---|---|
 | app + postgres | `backend/docker-compose.yml`, профиль `local` | `docker compose up --build -d --wait` |
 | web (оба SPA) | `frontend/docker-compose.yml`, `API_UPSTREAM` = `host.docker.internal:8080` | `docker compose up --build -d --wait` → `https://<LOCAL_DOMAIN>`, `https://admin.<LOCAL_DOMAIN>` |
+| storybook (витрина UI) | `frontend/docker-compose.yml`, сервис `storybook`, без бэкенда; в прод не входит | `docker compose up --build -d --wait storybook` → `http://localhost:6006` |
 | dev-режим фронта | Rsbuild dev-server с HTTPS (`frontend/packages/config/local-https`) + `server.proxy` | `pnpm dev` → те же имена с портами :3000 и :3001 |
 
 `LOCAL_DOMAIN` — `.env` корня фронта (по умолчанию `local.qgames.duckdns.org`), оба имени — в `hosts` на 127.0.0.1, сертификат mkcert — `frontend/docker/certs/` (для nginx и dev-сервера). Поддомены `duckdns.org` — один сайт, как в проде, и Google OAuth принимает их как origin. Настройка — README фронтенда.

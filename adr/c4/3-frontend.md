@@ -11,6 +11,7 @@ C4Component
   Container_Boundary(apps, "apps") {
     Component(portal, "portal", "React 19, TanStack Router + Query", "FSD: pages, widgets, features, entities, shared")
     Component(admin, "admin", "React 19, TanStack Router + Query", "Вход админа, список админов")
+    Component(storybook, "storybook", "Storybook 10, Rsbuild", "Витрина UI: *.stories.tsx пакетов, только локально")
   }
   Container_Boundary(pkgs, "packages") {
     Component(api, "@qgames/api", "Orval", "Клиенты групп portal и admin, fetch-mutator, ApiError")
@@ -28,6 +29,7 @@ C4Component
   Rel(portal, gcore, "")
   Rel(portal, games, "import() по коду игры")
   Rel(games, gui, "")
+  Rel(storybook, games, "истории компонентов")
   Rel(games, gcore, "")
   Rel(api, web, "fetch, credentials include")
   Rel(portal, web, "EventSource", "SSE")
@@ -41,6 +43,7 @@ C4Component
 |---|---|---|
 | `apps/portal` | Портал игрока, слои FSD, роуты `src/routes/` | [frontend-architecture](../frontend/frontend-architecture.md) |
 | `apps/admin` | Админка, ходит только в группу `admin` | [admin-separation](../security/admin-separation.md) |
+| `apps/storybook` | Витрина UI-компонентов: истории `*.stories.tsx` из `packages/*`, только пропсы и фикстуры, без бэкенда; только локально (:6006) | [storybook](../frontend/storybook.md) |
 | `@qgames/api` | Сгенерированный клиент (Query-хуки, типы, Zod), общий mutator с single-flight refresh, `errorMessage`, `applyFieldErrors` | [api-client-generation](../contract/api-client-generation.md) |
 | `@qgames/ui` | Компоненты shadcn, тема (`globals.css`), `ThemeProvider` (сейчас только light) | [ui-kit](../frontend/ui-kit.md) |
 | `@qgames/game-core` | Чистые функции партии: применитель патчей, сверка seq, guard'ы core (включая `stage`), `activeTimer`, `playerClock`, `stageClock` | [frontend-game-logic](../frontend/frontend-game-logic.md) |
